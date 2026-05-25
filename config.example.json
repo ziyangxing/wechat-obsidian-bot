@@ -1,0 +1,9 @@
+{
+  "vault_path": "D:/item/Claude_code_build/knowledge_m/knowledge",
+  "inbox_folder": "raw/wechat",
+  "download_media": true,
+  "extract_articles": true,
+  "article_extractor": "feedgrab",
+  "auto_friend_add": true,
+  "friend_welcome_msg": "你好，我是 Obsidian 助手。把任何内容转发给我，我会自动同步到你的 Obsidian 知识库。"
+}

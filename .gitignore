@@ -1,0 +1,26 @@
+# Binary
+wechat-obsidian-bot.exe
+*.exe
+*.exe~
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Config (user-specific)
+config.json
+
+# Output artifacts
+output/
+articles/
