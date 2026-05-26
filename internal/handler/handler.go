@@ -229,23 +229,26 @@ func (h *Handler) handleVoice(msg *openwechat.Message, sender string) {
 	msg.ReplyText("语音已保存，正在转录... 🎤➡️📝")
 
 	// Transcribe asynchronously
-	go h.transcribeVoice(voicePath, filePath, sender)
+	go h.transcribeVoice(voicePath, filePath, sender, msg)
 	log.Printf("[%s] voice saved (transcribing...)", sender)
 }
 
-func (h *Handler) transcribeVoice(voicePath, notePath, sender string) {
+func (h *Handler) transcribeVoice(voicePath, notePath, sender string, msg *openwechat.Message) {
 	result, err := article.TranscribeVoice(voicePath)
 	if err != nil {
 		log.Printf("[ERR] voice transcription: %v", err)
+		msg.ReplyText("语音转录失败: " + err.Error())
 		return
 	}
 
 	if result.Error != "" {
 		log.Printf("[ERR] voice transcription: %s", result.Error)
+		msg.ReplyText("语音转录失败: " + result.Error)
 		return
 	}
 
 	if result.Text == "" {
+		msg.ReplyText("语音转录完成，但未识别到内容")
 		return
 	}
 
@@ -259,6 +262,7 @@ func (h *Handler) transcribeVoice(voicePath, notePath, sender string) {
 		return
 	}
 	log.Printf("[%s] voice transcribed: %s", sender, truncateText(result.Text, 50))
+	msg.ReplyText(fmt.Sprintf("语音转录完成 ✅\n> %s", truncateText(result.Text, 60)))
 }
 
 // ---- Card ----
