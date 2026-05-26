@@ -12,10 +12,17 @@ import (
 	"wechat-obsidian-bot/internal/config"
 	"wechat-obsidian-bot/internal/handler"
 	"wechat-obsidian-bot/internal/license"
+	"wechat-obsidian-bot/internal/setup"
 	"wechat-obsidian-bot/internal/writer"
 )
 
 func main() {
+	// --setup mode: interactive install wizard
+	if len(os.Args) > 1 && os.Args[1] == "--setup" {
+		setup.Run()
+		return
+	}
+
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	cfg, err := config.Load("config.json")
