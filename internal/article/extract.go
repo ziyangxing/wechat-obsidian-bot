@@ -10,11 +10,12 @@ import (
 )
 
 type ArticleResult struct {
-	Title   string `json:"title"`
-	Content string `json:"content"`
-	URL     string `json:"url"`
-	Author  string `json:"author"`
-	Error   string `json:"error"`
+	Title     string   `json:"title"`
+	Content   string   `json:"content"`
+	URL       string   `json:"url"`
+	Author    string   `json:"author"`
+	Error     string   `json:"error"`
+	AllImages []string `json:"all_images"`
 }
 
 type VoiceResult struct {

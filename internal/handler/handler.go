@@ -396,8 +396,8 @@ func (h *Handler) processArticle(title, url, sender string, msg *openwechat.Mess
 			// Extract embedded video/audio links before image replacement
 			mediaLinks := h.extractMediaLinks(result.Content)
 
-			// Download images in article content and replace with local embeds
-			contentWithLocalImages := h.downloadArticleImages(result.Content)
+			// Download images: from regex in content + from feedgrab's all_images list
+			contentWithLocalImages := h.downloadArticleImages(result.Content, result.AllImages)
 
 			// Append media links section if any found
 			if len(mediaLinks) > 0 {
@@ -438,7 +438,7 @@ func (h *Handler) processArticle(title, url, sender string, msg *openwechat.Mess
 
 // downloadArticleImages finds image URLs in markdown content, downloads them,
 // and replaces remote URLs with local Obsidian embed syntax.
-func (h *Handler) downloadArticleImages(content string) string {
+func (h *Handler) downloadArticleImages(content string, extraImages []string) string {
 	destDir := h.writer.AttachmentsDir()
 	replacements := make(map[string]string) // original → replacement
 
@@ -452,7 +452,37 @@ func (h *Handler) downloadArticleImages(content string) string {
 	for _, m := range htmlImgRegex.FindAllStringSubmatch(content, -1) {
 		allMatches = append(allMatches, imgMatch{m[0], m[1]})
 	}
-	if len(allMatches) == 0 {
+
+	// Also process images from feedgrab's all_images list (captures table images
+	// that feedgrab's HTML->Markdown converter stripped). These get appended at end.
+	type extraImg struct{ url, localRel string }
+	var extraDownloaded []extraImg
+
+	for _, imgURL := range extraImages {
+		// Skip if already in our match list
+		dup := false
+		for _, m := range allMatches {
+			if m.url == imgURL {
+				dup = true
+				break
+			}
+		}
+		if dup {
+			continue
+		}
+
+		filename := fmt.Sprintf("article_%x", hashStr(imgURL))
+		localPath, err := media.DownloadFromURL(imgURL, destDir, filename)
+		if err != nil {
+			log.Printf("[WARN] download extra image failed: %s → %v", truncateText(imgURL, 60), err)
+			continue
+		}
+		relPath := "attachments/" + filepath.Base(localPath)
+		extraDownloaded = append(extraDownloaded, extraImg{imgURL, relPath})
+		log.Printf("[IMG] downloaded extra: %s → %s", truncateText(imgURL, 60), filepath.Base(localPath))
+	}
+
+	if len(allMatches) == 0 && len(extraDownloaded) == 0 {
 		return content
 	}
 
@@ -479,6 +509,16 @@ func (h *Handler) downloadArticleImages(content string) string {
 	for orig, repl := range replacements {
 		result = strings.Replace(result, orig, repl, 1)
 	}
+
+	// Append extra images (from feedgrab's all_images list) at the end
+	if len(extraDownloaded) > 0 {
+		result += "\n\n---\n\n## 🖼️ 补充图片\n\n"
+		result += "> 以下图片来自原文但未在正文中显示（可能在表格内或被格式转换丢弃）\n\n"
+		for _, x := range extraDownloaded {
+			result += fmt.Sprintf("![图片](%s)\n\n", x.localRel)
+		}
+	}
+
 	return result
 }
 
