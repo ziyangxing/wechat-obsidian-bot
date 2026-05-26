@@ -318,17 +318,63 @@ func (h *Handler) handleAppMessage(msg *openwechat.Message, sender string) {
 			h.saveLink(title, url, app.Des, sender, msg)
 		}
 
-	default:
-		if app.RecordItem != nil || strings.Contains(msg.Content, "<recorditem>") {
-			h.processChatRecord(&appMsg, sender, msg)
-		} else {
-			// Save raw XML for unknown app types (mini programs, video channel, etc.)
-			h.saveLink(title, url, app.Des, sender, msg)
+	case msg.AppMsgType == 51:
+			// Video channel / note content
+			h.processUnsupportedAppMsg(&appMsg, sender, msg)
+
+		default:
+			if app.RecordItem != nil || strings.Contains(msg.Content, "<recorditem>") {
+				h.processChatRecord(&appMsg, sender, msg)
+			} else {
+				// Save raw XML for unknown app types (mini programs, video channel, etc.)
+				h.saveLink(title, url, app.Des, sender, msg)
+			}
 		}
 	}
+
+// processUnsupportedAppMsg handles content that the desktop WeChat client cannot render.
+func (h *Handler) processUnsupportedAppMsg(appMsg *AppMessageXML, sender string, msg *openwechat.Message) {
+	app := appMsg.AppMsg
+	title := app.Title
+
+	isVideoChannel := strings.Contains(title, "version does not support") ||
+		strings.Contains(title, "微信") ||
+		strings.Contains(msg.Content, "finder") || strings.Contains(msg.Content, "Finder")
+
+	var content strings.Builder
+	if isVideoChannel {
+		content.WriteString("**视频号内容** — 桌面版微信无法渲染\n\n")
+		content.WriteString("> 请在手机上打开微信查看完整内容\n\n")
+	} else {
+		content.WriteString(fmt.Sprintf("**%s** — 桌面版微信不支持此内容\n\n", title))
+		content.WriteString("> 请更新微信或使用手机查看\n\n")
+	}
+
+	if app.URL != "" && !strings.Contains(app.URL, "support.weixin.qq.com/update") {
+		content.WriteString(fmt.Sprintf("原始链接：[%s](%s)\n\n", app.URL, app.URL))
+	}
+
+	content.WriteString(
+		fmt.Sprintf("来自：%s\n\n---\n\n<details>\n<summary>原始 XML</summary>\n\n```xml\n%s\n```\n</details>",
+			sender, msg.Content))
+
+	note := &writer.Note{
+		Title:    "视频号: " + sender,
+		Content:  content.String(),
+		Source:   sender,
+		NoteType: "video_channel",
+		Tags:     []string{"视频号"},
+	}
+
+	if _, err := h.writer.WriteNote(note); err != nil {
+		log.Printf("[ERR] write video channel note: %v", err)
+		return
+	}
+	msg.ReplyText("视频号内容已保存\n> 桌面版微信无法渲染，请在手机上查看")
+	log.Printf("[%s] video channel saved", sender)
 }
 
-// ---- Article extraction (async, with image download and feedback) ----
+// ---- Article extraction// ---- Article extraction (async, with image download and feedback) ----
 
 func (h *Handler) processArticle(title, url, sender string, msg *openwechat.Message) {
 	if title == "" {
