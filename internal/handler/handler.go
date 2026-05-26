@@ -307,6 +307,8 @@ func (h *Handler) handleAppMessage(msg *openwechat.Message, sender string) {
 	case msg.AppMsgType == openwechat.AppMsgTypeAttach:
 		if app.RecordItem != nil {
 			h.processChatRecord(&appMsg, sender, msg)
+		} else if h.isDocumentFile(msg) {
+			h.handleFileAttachment(msg, sender, title, app.Des)
 		} else {
 			h.saveLink(title, url, app.Des, sender, msg)
 		}
@@ -603,6 +605,68 @@ func (h *Handler) saveLink(title, url, desc, sender string, msg *openwechat.Mess
 	}
 	msg.ReplyText("链接已保存 ✅")
 	log.Printf("[%s] link saved", sender)
+}
+
+// ---- File attachments (PDF, Word, Excel, PPT, etc.) ----
+
+func (h *Handler) isDocumentFile(msg *openwechat.Message) bool {
+	if !msg.HasFile() {
+		return false
+	}
+	name := strings.ToLower(msg.FileName)
+	for _, ext := range []string{
+		".pdf", ".doc", ".docx", ".xls", ".xlsx",
+		".ppt", ".pptx", ".txt", ".csv", ".zip",
+		".rar", ".7z", ".md", ".json", ".xml",
+		".html", ".htm", ".epub", ".mobi",
+	} {
+		if strings.HasSuffix(name, ext) {
+			return true
+		}
+	}
+	return false
+}
+
+func (h *Handler) handleFileAttachment(msg *openwechat.Message, sender, title, desc string) {
+	fileName := msg.FileName
+	destDir := h.writer.AttachmentsDir()
+	filePath := filepath.Join(destDir, fileName)
+
+	if err := msg.SaveFileToLocal(filePath); err != nil {
+		log.Printf("[ERR] save file: %v", err)
+		msg.ReplyText("保存文件失败: " + err.Error())
+		return
+	}
+
+	relPath := "attachments/" + fileName
+	displayTitle := title
+	if displayTitle == "" {
+		displayTitle = fileName
+	}
+
+	var content strings.Builder
+	content.WriteString(fmt.Sprintf("**文件**：`%s`\n\n", relPath))
+	if desc != "" {
+		content.WriteString(fmt.Sprintf("描述：%s\n\n", desc))
+	}
+	content.WriteString(fmt.Sprintf("来自：%s\n\n", sender))
+	content.WriteString(fmt.Sprintf("> 💡 在 Obsidian 中点击 `%s` 可用系统默认程序打开", relPath))
+
+	note := &writer.Note{
+		Title:      "📎 " + displayTitle,
+		Content:    content.String(),
+		Source:     sender,
+		NoteType:   "file",
+		MediaFiles: []string{relPath},
+		Tags:       []string{"文件"},
+	}
+
+	if _, err := h.writer.WriteNote(note); err != nil {
+		log.Printf("[ERR] write file note: %v", err)
+		return
+	}
+	msg.ReplyText(fmt.Sprintf("文件已保存 ✅\n📎 %s", fileName))
+	log.Printf("[%s] file saved: %s", sender, fileName)
 }
 
 func (h *Handler) handleGeneric(msg *openwechat.Message, sender string) {
