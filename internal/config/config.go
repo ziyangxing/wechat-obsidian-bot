@@ -13,6 +13,7 @@ type Config struct {
 	ArticleExtractor string `json:"article_extractor"`
 	AutoFriendAdd    bool   `json:"auto_friend_add"`
 	FriendWelcomeMsg string `json:"friend_welcome_msg"`
+	LicenseKey       string `json:"license_key"`
 }
 
 func Load(path string) (*Config, error) {
