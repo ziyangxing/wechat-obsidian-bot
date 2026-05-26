@@ -108,6 +108,17 @@ func (w *Writer) generateFilename(now time.Time, note *Note) string {
 		return fmt.Sprintf("💬-%s-%s.md", safeTitle, ts)
 	case "voice":
 		return fmt.Sprintf("🎤-语音-%s.md", ts)
+	case "file":
+		safeTitle := sanitizeFilename(note.Title)
+		if len(safeTitle) > 40 {
+			safeTitle = safeTitle[:40]
+		}
+		if safeTitle == "" {
+			safeTitle = "文件"
+		}
+		return fmt.Sprintf("📎-%s-%s.md", safeTitle, ts)
+	case "video_channel":
+		return fmt.Sprintf("📱-视频号-%s.md", ts)
 	default:
 		safeTitle := sanitizeFilename(note.Content)
 		if len(safeTitle) > 30 {
