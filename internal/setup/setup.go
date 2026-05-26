@@ -218,9 +218,10 @@ func findObsidianVaults() []string {
 		filepath.Join(home, "Documents"),
 		filepath.Join(home, "文档"),
 		filepath.Join(home, "OneDrive", "Obsidian"),
-		"D:\\",
-		"D:\\item",
+		filepath.Join(home, "Desktop"),
+		filepath.Join(home, "桌面"),
 		"D:\\Obsidian",
+		"D:\\item",
 	}
 
 	seen := make(map[string]bool)
@@ -228,6 +229,7 @@ func findObsidianVaults() []string {
 		if !dirExists(base) {
 			continue
 		}
+		depth := 0
 		filepath.Walk(base, func(path string, info os.FileInfo, err error) error {
 			if err != nil || info == nil {
 				return nil
@@ -235,15 +237,21 @@ func findObsidianVaults() []string {
 			if !info.IsDir() {
 				return nil
 			}
+			// Calculate depth relative to base
+			rel, _ := filepath.Rel(base, path)
+			if rel == "." {
+				depth = 0
+			} else {
+				depth = len(strings.Split(rel, string(filepath.Separator)))
+			}
+			if depth > 3 {
+				return filepath.SkipDir
+			}
 			// Obsidian vault has a .obsidian folder inside
 			obsidianDir := filepath.Join(path, ".obsidian")
 			if dirExists(obsidianDir) && !seen[path] {
 				seen[path] = true
 				vaults = append(vaults, path)
-			}
-			// Don't recurse too deep
-			if filepath.Dir(path) != base && filepath.Dir(filepath.Dir(path)) != base {
-				return filepath.SkipDir
 			}
 			return nil
 		})
