@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Keygen Admin — WeChat Obsidian Bot</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f5f5; color: #1a1a2e; }
+  .container { max-width: 640px; margin: 0 auto; padding: 40px 24px; }
+  .card { background: white; border-radius: 12px; padding: 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  h1 { margin-bottom: 8px; }
+  .subtitle { color: #888; margin-bottom: 28px; }
+  label { font-weight: 600; display: block; margin-bottom: 6px; font-size: 0.95em; }
+  input, select { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1em; margin-bottom: 16px; font-family: monospace; }
+  input:focus, select:focus { outline: none; border-color: #667eea; }
+  .row { display: flex; gap: 12px; }
+  .row > * { flex: 1; }
+  .btn { padding: 14px 28px; border-radius: 8px; font-size: 1.1em; font-weight: 600; cursor: pointer; border: none; background: #667eea; color: white; }
+  .btn:hover { opacity: 0.9; }
+  .btn-danger { background: #e53935; }
+  .result { margin-top: 20px; padding: 20px; background: #e8f5e9; border-radius: 8px; display: none; }
+  .result .key { font-family: monospace; font-size: 0.7em; word-break: break-all; background: white; padding: 12px; border-radius: 6px; margin: 12px 0; user-select: all; }
+  .copy-btn { background: #4caf50; padding: 8px 16px; font-size: 0.9em; }
+  .history { margin-top: 30px; }
+  .history table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
+  .history th, .history td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #e0e0e0; }
+  .history th { background: #f8f9fc; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <h1>🔐 Keygen Admin</h1>
+    <p class="subtitle">生成客户 License Key · 此页面仅作者使用</p>
+
+    <label for="machineId">客户设备码</label>
+    <input type="text" id="machineId" placeholder="例如：EF4D87E773BC" maxlength="20">
+
+    <div class="row">
+      <div>
+        <label for="plan">套餐</label>
+        <select id="plan">
+          <option value="permanent">永久版 ¥49</option>
+          <option value="2027-06-01">年费版（1年）</option>
+          <option value="trial_7d">体验版（7天）</option>
+          <option value="custom">自定义日期</option>
+        </select>
+      </div>
+      <div id="customDateGroup" style="display:none;">
+        <label for="customDate">到期日期</label>
+        <input type="date" id="customDate" value="2027-06-01">
+      </div>
+    </div>
+
+    <label for="keygenPath">keygen 路径（首次使用需设置）</label>
+    <input type="text" id="keygenPath" placeholder="自动检测...">
+
+    <button class="btn" onclick="generateKey()">🔑 生成 License Key</button>
+
+    <div class="result" id="result">
+      <strong>✅ License Key 已生成</strong>
+      <div class="key" id="keyDisplay"></div>
+      <div style="margin-top:8px;">
+        <span id="keyInfo"></span>
+      </div>
+      <button class="btn copy-btn" onclick="copyKey()">📋 复制 Key</button>
+    </div>
+
+    <!-- History -->
+    <div class="history" id="historySection" style="display:none;">
+      <h3 style="margin-bottom:12px;">生成历史</h3>
+      <table id="historyTable">
+        <thead><tr><th>时间</th><th>机器码</th><th>套餐</th><th>操作</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+// --- Keygen Logic (pure JS, no backend needed) ---
+// This runs the same HMAC-SHA256 algorithm as the Go license module.
+// It generates keys entirely in the browser — no server required.
+
+async function sha256(msg) {
+  const buf = new TextEncoder().encode(msg);
+  const hash = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('').toUpperCase();
+}
+
+async function hmacSha256(key, msg) {
+  const keyBuf = new TextEncoder().encode(key);
+  const msgBuf = new TextEncoder().encode(msg);
+  const cryptoKey = await crypto.subtle.importKey('raw', keyBuf, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const sig = await crypto.subtle.sign('HMAC', cryptoKey, msgBuf);
+  return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2,'0')).join('').toUpperCase();
+}
+
+// Base32 encode (RFC 4648)
+function base32Encode(bytes) {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  let bits = 0, value = 0, output = '';
+  for (let i = 0; i < bytes.length; i++) {
+    value = (value << 8) | bytes[i];
+    bits += 8;
+    while (bits >= 5) {
+      output += alphabet[(value >>> (bits - 5)) & 31];
+      bits -= 5;
+    }
+  }
+  if (bits > 0) output += alphabet[(value << (5 - bits)) & 31];
+  return output;
+}
+
+function stringToBytes(str) {
+  return new TextEncoder().encode(str);
+}
+
+async function generateKey() {
+  const machineId = document.getElementById('machineId').value.trim().toUpperCase();
+  const plan = document.getElementById('plan').value;
+
+  if (!machineId || machineId.length < 6) {
+    alert('请输入有效的设备码');
+    return;
+  }
+
+  let expiry;
+  if (plan === 'permanent') expiry = 'permanent';
+  else if (plan === 'trial_7d') {
+    const d = new Date(); d.setDate(d.getDate() + 7);
+    expiry = d.toISOString().split('T')[0];
+  }
+  else if (plan === 'custom') expiry = document.getElementById('customDate').value;
+  else expiry = plan;
+
+  const secret = 'wechat-obsidian-bot-2026';
+  const payload = JSON.stringify({ mid: machineId, exp: expiry, prd: 'wechat-obsidian-bot' });
+  const payloadBytes = stringToBytes(payload);
+
+  const sigRaw = await hmacSha256(secret, payload);
+  const sig = sigRaw.substring(0, 16);
+
+  const combined = payload + '|' + sig;
+  const combinedBytes = stringToBytes(combined);
+  const encoded = base32Encode(combinedBytes);
+
+  // Format: WEOBS-XXXXX-XXXXX-...
+  const parts = [];
+  for (let i = 0; i < encoded.length; i += 5) {
+    parts.push(encoded.substring(i, i + 5));
+  }
+  const key = 'WEOBS-' + parts.join('-');
+
+  // Display
+  document.getElementById('keyDisplay').textContent = key;
+  document.getElementById('keyInfo').innerHTML =
+    '机器码: <code>' + machineId + '</code> &nbsp;|&nbsp; 到期: <code>' + expiry + '</code>';
+  document.getElementById('result').style.display = 'block';
+
+  // Save to history
+  saveHistory(machineId, expiry, key);
+}
+
+function copyKey() {
+  const key = document.getElementById('keyDisplay').textContent;
+  navigator.clipboard.writeText(key).then(() => {
+    const btn = event.target;
+    btn.textContent = '✅ 已复制';
+    setTimeout(() => btn.textContent = '📋 复制 Key', 2000);
+  });
+}
+
+function saveHistory(machineId, expiry, key) {
+  const history = JSON.parse(localStorage.getItem('keygen_history') || '[]');
+  history.unshift({
+    time: new Date().toLocaleString('zh-CN'),
+    machineId,
+    expiry,
+    key: key.substring(0, 30) + '...'
+  });
+  if (history.length > 50) history.length = 50;
+  localStorage.setItem('keygen_history', JSON.stringify(history));
+  renderHistory();
+}
+
+function renderHistory() {
+  const history = JSON.parse(localStorage.getItem('keygen_history') || '[]');
+  if (history.length === 0) return;
+  document.getElementById('historySection').style.display = 'block';
+  const tbody = document.getElementById('historyTable').querySelector('tbody');
+  tbody.innerHTML = history.map(h =>
+    '<tr><td>' + h.time + '</td><td>' + h.machineId + '</td><td>' + h.expiry + '</td><td><button onclick="navigator.clipboard.writeText(\'' + h.key + '\')" style="cursor:pointer;background:none;border:none;font-size:1.2em;">📋</button></td></tr>'
+  ).join('');
+}
+
+// Init
+document.getElementById('plan').addEventListener('change', function() {
+  document.getElementById('customDateGroup').style.display = this.value === 'custom' ? 'block' : 'none';
+});
+renderHistory();
+</script>
+</body>
+</html>
