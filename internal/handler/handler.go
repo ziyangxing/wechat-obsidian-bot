@@ -645,7 +645,7 @@ func (h *Handler) handleFileAttachment(msg *openwechat.Message, sender, title, d
 	}
 
 	var content strings.Builder
-	content.WriteString(fmt.Sprintf("[[%s|📂 %s]]\n\n", relPath, fileName))
+	content.WriteString(fmt.Sprintf("![[%s|📂 %s]]\n\n", relPath, fileName))
 	if desc != "" {
 		content.WriteString(fmt.Sprintf("> %s\n\n", desc))
 	}
