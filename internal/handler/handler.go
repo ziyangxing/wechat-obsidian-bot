@@ -439,18 +439,26 @@ func (h *Handler) processArticle(title, url, sender string, msg *openwechat.Mess
 // downloadArticleImages finds image URLs in markdown content, downloads them,
 // and replaces remote URLs with local Obsidian embed syntax.
 func (h *Handler) downloadArticleImages(content string) string {
-	re := imageMarkdownRegex
-	matches := re.FindAllStringSubmatch(content, -1)
-	if len(matches) == 0 {
-		return content
-	}
-
 	destDir := h.writer.AttachmentsDir()
 	replacements := make(map[string]string) // original → replacement
 
-	for _, m := range matches {
-		fullMatch := m[0]
-		imgURL := m[2]
+	// Collect matches from both markdown and HTML image patterns
+	type imgMatch struct{ full, url string }
+	var allMatches []imgMatch
+
+	for _, m := range imageMarkdownRegex.FindAllStringSubmatch(content, -1) {
+		allMatches = append(allMatches, imgMatch{m[0], m[2]})
+	}
+	for _, m := range htmlImgRegex.FindAllStringSubmatch(content, -1) {
+		allMatches = append(allMatches, imgMatch{m[0], m[1]})
+	}
+	if len(allMatches) == 0 {
+		return content
+	}
+
+	for _, m := range allMatches {
+		fullMatch := m.full
+		imgURL := m.url
 
 		// Generate filename (extension auto-detected by DownloadFromURL)
 		filename := fmt.Sprintf("article_%x", hashStr(imgURL))
@@ -612,6 +620,7 @@ func truncateText(s string, maxLen int) string {
 // ---- Helpers ----
 
 var imageMarkdownRegex = regexp.MustCompile(`!\[([^\]]*)\]\(([^)]+)\)`)
+var htmlImgRegex = regexp.MustCompile(`<img[^>]+src=["']([^"']+)["'][^>]*>`)
 var iframeRegex = regexp.MustCompile(`<iframe[^>]+src=["']([^"']+)["']`)
 var videoSrcRegex = regexp.MustCompile(`<video[^>]+src=["']([^"']+)["']`)
 var sourceSrcRegex = regexp.MustCompile(`<source[^>]+src=["']([^"']+)["']`)
