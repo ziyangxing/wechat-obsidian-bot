@@ -145,7 +145,7 @@ func (h *Handler) handleImage(msg *openwechat.Message, sender string) {
 		return
 	}
 
-	relPath := filepath.Join("attachments", imgName)
+	relPath := "attachments/" + imgName
 	note := &writer.Note{
 		Title:      sender + " 发来一张图片",
 		Content:    fmt.Sprintf("![[%s]]\n\n来自：%s", relPath, sender),
@@ -178,7 +178,7 @@ func (h *Handler) handleVideo(msg *openwechat.Message, sender string) {
 		return
 	}
 
-	relPath := filepath.Join("attachments", videoName)
+	relPath := "attachments/" + videoName
 	note := &writer.Note{
 		Title:      sender + " 发来一个视频",
 		Content:    fmt.Sprintf("视频文件：`%s`\n\n来自：%s", relPath, sender),
@@ -211,7 +211,7 @@ func (h *Handler) handleVoice(msg *openwechat.Message, sender string) {
 		return
 	}
 
-	relPath := filepath.Join("attachments", voiceName)
+	relPath := "attachments/" + voiceName
 	note := &writer.Note{
 		Title:      sender + " 发来一段语音",
 		Content:    fmt.Sprintf("语音文件：`%s`\n\n> 🔄 正在转录中...\n\n来自：%s", relPath, sender),
@@ -254,7 +254,7 @@ func (h *Handler) transcribeVoice(voicePath, notePath, sender string, msg *openw
 
 	// Update the note with transcription
 	content := fmt.Sprintf("语音文件：`%s`\n\n## 转录内容\n\n%s\n\n来自：%s",
-		filepath.Join("attachments", filepath.Base(voicePath)),
+		"attachments/"+filepath.Base(voicePath),
 		result.Text, sender)
 
 	if err := h.writer.UpdateNoteContent(notePath, content); err != nil {
