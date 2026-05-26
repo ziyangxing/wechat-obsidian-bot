@@ -181,7 +181,7 @@ func (h *Handler) handleVideo(msg *openwechat.Message, sender string) {
 	relPath := "attachments/" + videoName
 	note := &writer.Note{
 		Title:      sender + " 发来一个视频",
-		Content:    fmt.Sprintf("视频文件：`%s`\n\n来自：%s", relPath, sender),
+		Content:    fmt.Sprintf("![](%s)\n\n来自：%s", relPath, sender),
 		Source:     sender,
 		NoteType:   "video",
 		MediaFiles: []string{relPath},
