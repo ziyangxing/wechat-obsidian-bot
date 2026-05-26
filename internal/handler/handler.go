@@ -645,12 +645,11 @@ func (h *Handler) handleFileAttachment(msg *openwechat.Message, sender, title, d
 	}
 
 	var content strings.Builder
-	content.WriteString(fmt.Sprintf("**文件**：`%s`\n\n", relPath))
+	content.WriteString(fmt.Sprintf("[📂 %s](%s)\n\n", fileName, relPath))
 	if desc != "" {
-		content.WriteString(fmt.Sprintf("描述：%s\n\n", desc))
+		content.WriteString(fmt.Sprintf("> %s\n\n", desc))
 	}
-	content.WriteString(fmt.Sprintf("来自：%s\n\n", sender))
-	content.WriteString(fmt.Sprintf("> 💡 在 Obsidian 中点击 `%s` 可用系统默认程序打开", relPath))
+	content.WriteString(fmt.Sprintf("来自：%s", sender))
 
 	note := &writer.Note{
 		Title:      "📎 " + displayTitle,
