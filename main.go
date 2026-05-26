@@ -11,6 +11,7 @@ import (
 
 	"wechat-obsidian-bot/internal/config"
 	"wechat-obsidian-bot/internal/handler"
+	"wechat-obsidian-bot/internal/license"
 	"wechat-obsidian-bot/internal/writer"
 )
 
@@ -21,6 +22,17 @@ func main() {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "加载配置失败: %v\n", err)
 		fmt.Fprintf(os.Stderr, "请确保 config.json 存在且格式正确\n")
+		os.Exit(1)
+	}
+
+	// License check
+	if cfg.LicenseKey == "" {
+		fmt.Fprintln(os.Stderr, "未配置 License Key，请在 config.json 中填入 license_key")
+		license.PrintMachineID()
+		os.Exit(1)
+	}
+	if valid, msg := license.Validate(cfg.LicenseKey); !valid {
+		fmt.Fprintf(os.Stderr, "License 验证失败: %s\n", msg)
 		os.Exit(1)
 	}
 
