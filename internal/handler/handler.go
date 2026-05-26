@@ -347,8 +347,20 @@ func (h *Handler) processArticle(title, url, sender string, msg *openwechat.Mess
 				return
 			}
 
+			// Extract embedded video/audio links before image replacement
+			mediaLinks := h.extractMediaLinks(result.Content)
+
 			// Download images in article content and replace with local embeds
 			contentWithLocalImages := h.downloadArticleImages(result.Content)
+
+			// Append media links section if any found
+			if len(mediaLinks) > 0 {
+				contentWithLocalImages += "\n\n---\n\n## 📺 原文中的媒体链接\n\n"
+				contentWithLocalImages += "> 以下链接来自原文中嵌入的视频/音频，需跳转至外部平台观看\n\n"
+				for _, link := range mediaLinks {
+					contentWithLocalImages += fmt.Sprintf("- [🔗 外部链接](%s)\n", link)
+				}
+			}
 
 			articleNote := &writer.Note{
 				Title:    result.Title,
@@ -554,6 +566,70 @@ func truncateText(s string, maxLen int) string {
 // ---- Helpers ----
 
 var imageMarkdownRegex = regexp.MustCompile(`!\[([^\]]*)\]\(([^)]+)\)`)
+var iframeRegex = regexp.MustCompile(`<iframe[^>]+src=["']([^"']+)["']`)
+var videoSrcRegex = regexp.MustCompile(`<video[^>]+src=["']([^"']+)["']`)
+var sourceSrcRegex = regexp.MustCompile(`<source[^>]+src=["']([^"']+)["']`)
+var mdLinkRegex = regexp.MustCompile(`\[([^\]]*)\]\(([^)]+)\)`)
+var rawURLRegex = regexp.MustCompile(`https?://[^\s<>"')\]]+`)
+
+// extractMediaLinks scans article content for embedded video/audio URLs.
+func (h *Handler) extractMediaLinks(content string) []string {
+	seen := make(map[string]bool)
+	var links []string
+
+	for _, m := range iframeRegex.FindAllStringSubmatch(content, -1) {
+		url := strings.TrimSpace(m[1])
+		if url != "" && !seen[url] {
+			seen[url] = true
+			links = append(links, url)
+		}
+	}
+
+	for _, re := range []*regexp.Regexp{videoSrcRegex, sourceSrcRegex} {
+		for _, m := range re.FindAllStringSubmatch(content, -1) {
+			url := strings.TrimSpace(m[1])
+			if url != "" && !seen[url] {
+				seen[url] = true
+				links = append(links, url)
+			}
+		}
+	}
+
+	for _, m := range mdLinkRegex.FindAllStringSubmatch(content, -1) {
+		url := strings.TrimSpace(m[2])
+		if isMediaPlatformURL(url) && !seen[url] {
+			seen[url] = true
+			links = append(links, url)
+		}
+	}
+
+	for _, m := range rawURLRegex.FindAllStringSubmatch(content, -1) {
+		url := strings.TrimSpace(m[0])
+		if isMediaPlatformURL(url) && !seen[url] {
+			seen[url] = true
+			links = append(links, url)
+		}
+	}
+
+	return links
+}
+
+func isMediaPlatformURL(url string) bool {
+	lower := strings.ToLower(url)
+	for _, kw := range []string{
+		"v.qq.com", "video.qq.com",
+		"bilibili.com/video", "b23.tv",
+		"youtube.com/watch", "youtu.be/",
+		"youku.com/v_show", "v.youku.com",
+		"ixigua.com", "douyin.com/video",
+		"xhslink.com",
+	} {
+		if strings.Contains(lower, kw) {
+			return true
+		}
+	}
+	return false
+}
 
 func hashStr(s string) uint64 {
 	h := fnv.New64a()
