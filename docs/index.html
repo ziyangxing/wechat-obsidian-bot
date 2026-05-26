@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WeChat Obsidian Bot — 微信内容自动同步到你的知识库</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #1a1a2e; line-height: 1.6; }
+  .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+
+  /* Hero */
+  .hero { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 80px 0 60px; text-align: center; }
+  .hero h1 { font-size: 2.4em; margin-bottom: 12px; }
+  .hero p { font-size: 1.2em; opacity: 0.9; margin-bottom: 30px; }
+  .btn { display: inline-block; padding: 14px 36px; border-radius: 8px; font-size: 1.1em; font-weight: 600; text-decoration: none; cursor: pointer; border: none; transition: transform .2s; }
+  .btn:hover { transform: scale(1.05); }
+  .btn-primary { background: #fff; color: #667eea; }
+  .btn-outline { background: transparent; border: 2px solid white; color: white; margin-left: 12px; }
+
+  /* Features */
+  .features { padding: 60px 0; }
+  .features h2 { text-align: center; font-size: 1.8em; margin-bottom: 40px; }
+  .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
+  .feature-card { background: #f8f9fc; padding: 28px; border-radius: 12px; text-align: center; }
+  .feature-card .icon { font-size: 2em; margin-bottom: 12px; }
+  .feature-card h3 { font-size: 1.1em; margin-bottom: 8px; }
+  .feature-card p { color: #666; font-size: 0.9em; }
+
+  /* Steps */
+  .steps { background: #f8f9fc; padding: 60px 0; }
+  .steps h2 { text-align: center; font-size: 1.8em; margin-bottom: 40px; }
+  .steps-row { display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; }
+  .step { text-align: center; flex: 1; min-width: 200px; max-width: 260px; }
+  .step-num { display: inline-block; width: 48px; height: 48px; line-height: 48px; border-radius: 50%; background: #667eea; color: white; font-size: 1.4em; font-weight: 700; margin-bottom: 16px; }
+
+  /* Pricing */
+  .pricing { padding: 60px 0; }
+  .pricing h2 { text-align: center; font-size: 1.8em; margin-bottom: 40px; }
+  .pricing-cards { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; }
+  .price-card { background: white; border: 2px solid #e0e0e0; border-radius: 12px; padding: 36px 28px; text-align: center; flex: 1; min-width: 220px; max-width: 300px; }
+  .price-card.featured { border-color: #667eea; box-shadow: 0 4px 20px rgba(102,126,234,0.2); }
+  .price-card h3 { font-size: 1.2em; margin-bottom: 12px; }
+  .price { font-size: 2.4em; font-weight: 700; color: #667eea; }
+  .price small { font-size: 0.4em; color: #999; }
+  .price-card ul { list-style: none; margin: 20px 0; text-align: left; }
+  .price-card li { padding: 6px 0; font-size: 0.9em; }
+  .price-card li::before { content: "✓ "; color: #667eea; font-weight: 700; }
+
+  /* CTA */
+  .cta { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-align: center; padding: 60px 0; }
+  .cta h2 { font-size: 1.8em; margin-bottom: 12px; }
+  .cta p { margin-bottom: 30px; opacity: 0.9; }
+
+  /* Footer */
+  footer { text-align: center; padding: 30px; color: #999; font-size: 0.85em; }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="container">
+    <h1>📬 微信内容，自动同步到 Obsidian</h1>
+    <p>转发微信消息给你的"同步助手"，<br>自动归档为结构化 Markdown 笔记</p>
+    <a href="https://github.com/ziyangxing/wechat-obsidian-bot/releases/latest" class="btn btn-primary">免费下载</a>
+    <a href="#pricing" class="btn btn-outline">查看定价</a>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="features">
+  <div class="container">
+    <h2>支持的内容类型</h2>
+    <div class="features-grid">
+      <div class="feature-card"><div class="icon">📝</div><h3>文字闪念</h3><p>转发一句话 → 自动保存为笔记</p></div>
+      <div class="feature-card"><div class="icon">📷</div><h3>图片</h3><p>自动下载 + 可嵌入预览</p></div>
+      <div class="feature-card"><div class="icon">🎬</div><h3>视频</h3><p>自动下载 + 可嵌入播放</p></div>
+      <div class="feature-card"><div class="icon">🎤</div><h3>语音转文字</h3><p>AI 本地转录（Whisper）</p></div>
+      <div class="feature-card"><div class="icon">📄</div><h3>公众号文章</h3><p>自动提取正文 + 下载图片</p></div>
+      <div class="feature-card"><div class="icon">💬</div><h3>聊天记录</h3><p>自动格式化对话体</p></div>
+      <div class="feature-card"><div class="icon">📎</div><h3>PDF/Office</h3><p>自动下载，内嵌预览</p></div>
+      <div class="feature-card"><div class="icon">🔒</div><h3>完全本地</h3><p>数据不上传云端</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- Steps -->
+<section class="steps">
+  <div class="container">
+    <h2>三步开始</h2>
+    <div class="steps-row">
+      <div class="step"><div class="step-num">1</div><h3>下载 + 安装</h3><p>解压后双击"安装.bat"，自动检测环境并配置</p></div>
+      <div class="step"><div class="step-num">2</div><h3>激活 License</h3><p>获取设备码 → 购买 → 输入 Key</p></div>
+      <div class="step"><div class="step-num">3</div><h3>扫码开始</h3><p>微信小号扫码登录，转发内容即可</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing -->
+<section class="pricing" id="pricing">
+  <div class="container">
+    <h2>定价</h2>
+    <div class="pricing-cards">
+      <div class="price-card">
+        <h3>🆓 免费试用</h3>
+        <div class="price">¥0</div>
+        <ul>
+          <li>每日 3 条消息</li>
+          <li>基础文字/图片同步</li>
+          <li>7 天有效期</li>
+        </ul>
+        <a href="https://github.com/ziyangxing/wechat-obsidian-bot/releases/latest" class="btn btn-primary">免费下载</a>
+      </div>
+      <div class="price-card featured">
+        <h3>⭐ 个人版</h3>
+        <div class="price">¥49<small>/永久</small></div>
+        <ul>
+          <li>无限消息同步</li>
+          <li>所有内容类型</li>
+          <li>公众号文章提取</li>
+          <li>语音转文字</li>
+          <li>永久使用 + 更新</li>
+        </ul>
+        <a href="#buy" class="btn btn-primary">立即购买</a>
+      </div>
+      <div class="price-card">
+        <h3>🏢 企业版</h3>
+        <div class="price">¥499<small>/年起</small></div>
+        <ul>
+          <li>个人版全部功能</li>
+          <li>团队多人使用</li>
+          <li>优先技术支持</li>
+          <li>定制功能开发</li>
+        </ul>
+        <a href="#buy" class="btn btn-primary">联系我们</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Buy Section -->
+<section class="cta" id="buy">
+  <div class="container">
+    <h2>购买流程</h2>
+    <p>① 下载安装包 → ② 运行"安装.bat"获取设备码 → ③ 扫码付款 → ④ 在下方输入信息获取 License Key</p>
+    <a href="/wechat-obsidian-bot/activate.html" class="btn btn-primary" style="font-size:1.2em; padding: 16px 48px;">🔑 激活 License</a>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>WeChat Obsidian Bot — 开源 · 本地 · 安全</p>
+    <p><a href="https://github.com/ziyangxing/wechat-obsidian-bot" style="color:#667eea;">GitHub</a></p>
+  </div>
+</footer>
+
+</body>
+</html>
