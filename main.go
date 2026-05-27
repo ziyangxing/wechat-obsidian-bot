@@ -12,6 +12,7 @@ import (
 	"wechat-obsidian-bot/internal/config"
 	"wechat-obsidian-bot/internal/handler"
 	"wechat-obsidian-bot/internal/license"
+	"wechat-obsidian-bot/internal/server"
 	"wechat-obsidian-bot/internal/setup"
 	"wechat-obsidian-bot/internal/writer"
 )
@@ -20,6 +21,20 @@ func main() {
 	// --setup mode: interactive install wizard
 	if len(os.Args) > 1 && os.Args[1] == "--setup" {
 		setup.Run()
+		return
+	}
+
+	// --serve mode: activation web server
+	if len(os.Args) > 1 && os.Args[1] == "--serve" {
+		port := "8080"
+		if len(os.Args) > 2 {
+			port = os.Args[2]
+		}
+		fmt.Println("启动激活服务器...")
+		if err := server.Start(port); err != nil {
+			fmt.Fprintf(os.Stderr, "服务器启动失败: %v\n", err)
+			os.Exit(1)
+		}
 		return
 	}
 

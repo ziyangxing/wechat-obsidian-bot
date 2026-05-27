@@ -24,3 +24,4 @@ config.json
 # Output artifacts
 output/
 articles/
+activations.json

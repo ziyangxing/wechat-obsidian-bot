@@ -89,32 +89,74 @@ async function submitActivation() {
   const btn = document.getElementById('submitBtn');
 
   if (!deviceCode) { alert('请先输入设备码'); return; }
-  if (!txnId) { alert('请输入付款交易号或截图链接'); return; }
 
   btn.disabled = true;
   btn.textContent = '提交中...';
 
-  // Submit to a lightweight backend (can be a serverless function or form service)
-  // For now, use a simple form that sends to email or a webhook
-  const data = { deviceCode, txnId, timestamp: new Date().toISOString() };
-
+  // Try to submit to local activation server first
   try {
-    // Placeholder: replace with actual endpoint
-    // await fetch('https://your-api.com/activate', { method: 'POST', body: JSON.stringify(data) });
-
-    // For now, show a success message with instructions
-    btn.textContent = '已提交 ✓';
-    btn.style.background = '#4caf50';
-
-    const div = document.createElement('div');
-    div.style.cssText = 'margin-top:16px; padding:16px; background:#e8f5e9; border-radius:8px; text-align:center;';
-    div.innerHTML = '<strong>✅ 激活请求已提交</strong><br><br>请添加客服微信 <strong>15919122865</strong><br>发送以下设备码：<br><br><code>' + deviceCode + '</code><br><br>我们会立即回复 License Key';
-    btn.parentNode.insertBefore(div, btn.nextSibling);
-
+    const resp = await fetch('/api/activate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ machine_id: deviceCode, txn_id: txnId })
+    });
+    const data = await resp.json();
+    if (data.id) {
+      // Automated flow: poll for key
+      btn.textContent = '已提交，等待审批...';
+      btn.style.background = '#ff9800';
+      pollForKey(data.id, deviceCode, btn);
+      return;
+    }
   } catch(e) {
-    btn.disabled = false;
-    btn.textContent = '提交失败，请重试';
+    // Server not running, fall through to manual flow
   }
+
+  // Manual flow (server not available)
+  btn.textContent = '已提交 ✓';
+  btn.style.background = '#4caf50';
+
+  const div = document.createElement('div');
+  div.style.cssText = 'margin-top:16px; padding:16px; background:#e8f5e9; border-radius:8px; text-align:center;';
+  div.innerHTML = '<strong>✅ 激活请求已提交</strong><br><br>请添加客服微信 <strong>15919122865</strong><br>发送以下设备码：<br><br><code>' + deviceCode + '</code><br><br>我们会立即回复 License Key';
+  btn.parentNode.insertBefore(div, btn.nextSibling);
+}
+
+async function pollForKey(id, deviceCode, btn) {
+  const maxPolls = 120; // 10 minutes
+  let count = 0;
+
+  const check = async () => {
+    try {
+      const resp = await fetch('/api/key?id=' + id);
+      const data = await resp.json();
+      if (data.license_key) {
+        // Key ready!
+        btn.style.display = 'none';
+        const div = document.createElement('div');
+        div.style.cssText = 'margin-top:16px; padding:24px; background:#e8f5e9; border-radius:8px; text-align:center;';
+        div.innerHTML = '<strong>🎉 激活成功！</strong><br><br>' +
+          '<p>设备码: <code>' + data.machine_id + '</code></p>' +
+          '<p style="margin:12px 0;">License Key:</p>' +
+          '<div style="font-family:monospace;font-size:0.7em;word-break:break-all;background:white;padding:12px;border-radius:6px;margin:8px 0;user-select:all;">' + data.license_key + '</div>' +
+          '<button class="btn" onclick="navigator.clipboard.writeText(\'' + data.license_key + '\');this.textContent=\'✅ 已复制\'' + '" style="background:#4caf50;margin-top:8px;">📋 复制 Key</button>' +
+          '<p style="margin-top:12px;font-size:0.85em;">将此 Key 填入 config.json 的 license_key 字段</p>';
+        btn.parentNode.insertBefore(div, btn.nextSibling);
+        return;
+      }
+      if (count >= maxPolls) {
+        btn.textContent = '超时，请联系客服';
+        btn.style.background = '#e53935';
+        return;
+      }
+      count++;
+      setTimeout(check, 5000);
+    } catch(e) {
+      count++;
+      setTimeout(check, 5000);
+    }
+  };
+  check();
 }
 </script>
 </body>
