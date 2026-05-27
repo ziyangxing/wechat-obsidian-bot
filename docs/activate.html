@@ -66,18 +66,19 @@ footer{text-align:center;margin-top:30px;color:#999;font-size:0.85em}
 <footer><p>WeChat Obsidian Bot · <a href="index.html" style="color:#667eea;">返回首页</a></p></footer>
 
 <script>
-// Auto-fill from URL ?code=XXX and skip to payment step
-const params = new URLSearchParams(window.location.search);
-const codeParam = params.get('code');
-if (codeParam) {
-  document.getElementById('deviceCode').value = codeParam;
-  document.getElementById('deviceCode').style.background = '#e8f5e9';
-  // Auto-trigger: device code is already filled, show next steps immediately
-  showResult(codeParam);
-}
+document.addEventListener('DOMContentLoaded', function() {
+  // Auto-fill from URL ?code=XXX
+  var params = new URLSearchParams(window.location.search);
+  var codeParam = params.get('code');
+  if (codeParam) {
+    document.getElementById('deviceCode').value = codeParam;
+    document.getElementById('deviceCode').style.background = '#e8f5e9';
+    showResult(codeParam);
+  }
+});
 
 function done() {
-  const code = document.getElementById('deviceCode').value.trim();
+  var code = document.getElementById('deviceCode').value.trim();
   if (!code) { alert('请先输入设备码'); return; }
   showResult(code);
 }
@@ -86,7 +87,6 @@ function showResult(code) {
   document.getElementById('submitBtn').disabled = true;
   document.getElementById('submitBtn').textContent = '✓';
   document.getElementById('submitBtn').style.background = '#4caf50';
-
   document.getElementById('result').innerHTML =
     '<div class="success" style="margin-top:16px;padding:20px;border-radius:8px;text-align:center;">' +
     '<strong>扫码付款后，加微信发设备码</strong><br><br>' +

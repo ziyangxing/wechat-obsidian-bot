@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/eatmoreapple/openwechat"
 
@@ -22,7 +23,7 @@ func main() {
 	// --device-code mode: show machine code and copy to clipboard
 	if len(os.Args) > 1 && os.Args[1] == "--device-code" {
 		code := license.GetMachineID()
-		activateURL := fmt.Sprintf("https://ziyangxing.github.io/wechat-obsidian-bot/activate?code=%s", code)
+		activateURL := fmt.Sprintf("https://ziyangxing.github.io/wechat-obsidian-bot/activate?v=%d&code=%s", time.Now().Unix(), code)
 		fmt.Printf("设备码: %s\n", code)
 		fmt.Printf("激活链接: %s\n", activateURL)
 		copyToClipboard(code)
