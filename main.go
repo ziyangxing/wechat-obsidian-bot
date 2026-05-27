@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"os/signal"
 	"syscall"
 
@@ -18,6 +19,16 @@ import (
 )
 
 func main() {
+	// --device-code mode: show machine code and copy to clipboard
+	if len(os.Args) > 1 && os.Args[1] == "--device-code" {
+		code := license.GetMachineID()
+		fmt.Printf("设备码: %s\n", code)
+		fmt.Printf("激活链接: https://ziyangxing.github.io/wechat-obsidian-bot/activate?code=%s\n", code)
+		copyToClipboard(code)
+		fmt.Println("(已复制到剪贴板，直接粘贴即可)")
+		return
+	}
+
 	// --setup mode: interactive install wizard
 	if len(os.Args) > 1 && os.Args[1] == "--setup" {
 		setup.Run()
@@ -125,4 +136,9 @@ func main() {
 
 	// Block forever
 	bot.Block()
+}
+
+func copyToClipboard(text string) {
+	cmd := exec.Command("powershell", "-Command", "Set-Clipboard -Value "+text)
+	cmd.Run()
 }
