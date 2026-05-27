@@ -207,19 +207,40 @@ func checkPythonPackages() bool {
 }
 
 func checkPlaywrightChromium() bool {
-	// Check if chromium is installed for playwright
-	cmd := exec.Command("python", "-c", `
-import os, sys
-try:
-    from playwright.sync_api import sync_playwright
-    with sync_playwright() as p:
-        browser = p.chromium.launch()
-        browser.close()
-    sys.exit(0)
-except:
-    sys.exit(1)
-`)
-	return cmd.Run() == nil
+	// Check if chromium is installed for playwright (look for the binary)
+	home, _ := os.UserHomeDir()
+	localAppData := os.Getenv("LOCALAPPDATA")
+	searchDirs := []string{
+		filepath.Join(home, "AppData", "Local", "ms-playwright"),
+		filepath.Join(localAppData, "ms-playwright"),
+	}
+	for _, dir := range searchDirs {
+		if !dirExists(dir) {
+			continue
+		}
+		entries, err := os.ReadDir(dir)
+		if err != nil {
+			continue
+		}
+		for _, e := range entries {
+			if e.IsDir() && strings.HasPrefix(e.Name(), "chromium-") {
+				chromeExe := filepath.Join(dir, e.Name(), "chrome-win", "chrome.exe")
+				if fileExists(chromeExe) {
+					return true
+				}
+			}
+		}
+	}
+	// Fallback: try python -c to get path
+	cmd := exec.Command("python", "-c", "from playwright.sync_api import sync_playwright; print(sync_playwright().start().chromium.executable_path)")
+	output, err := cmd.Output()
+	if err == nil {
+		chromePath := strings.TrimSpace(string(output))
+		if chromePath != "" && fileExists(chromePath) {
+			return true
+		}
+	}
+	return false
 }
 
 func findObsidianVaults() []string {
@@ -283,6 +304,11 @@ func printStatus(name string, ok bool) {
 func dirExists(path string) bool {
 	info, err := os.Stat(path)
 	return err == nil && info.IsDir()
+}
+
+func fileExists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
 }
 
 func promptPath(reader *bufio.Reader, prevAttempt string) string {
