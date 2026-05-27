@@ -74,7 +74,7 @@
 
     <div class="divider"></div>
 
-    <p class="note" style="text-align:center;">提交后通常 10 分钟内通过邮件收到 Key。<br>如需加急请联系客服微信。</p>
+    <p class="note" style="text-align:center;">提交后请添加客服微信 <strong>15919122865</strong> 发送设备码<br>我们会立即回复 License Key</p>
   </div>
 </div>
 
@@ -108,7 +108,7 @@ async function submitActivation() {
 
     const div = document.createElement('div');
     div.style.cssText = 'margin-top:16px; padding:16px; background:#e8f5e9; border-radius:8px; text-align:center;';
-    div.innerHTML = '<strong>✅ 激活请求已提交</strong><br><br>请添加客服微信发送以下信息：<br><br><code>' + deviceCode + '</code><br><br>我们会立即回复 License Key';
+    div.innerHTML = '<strong>✅ 激活请求已提交</strong><br><br>请添加客服微信 <strong>15919122865</strong><br>发送以下设备码：<br><br><code>' + deviceCode + '</code><br><br>我们会立即回复 License Key';
     btn.parentNode.insertBefore(div, btn.nextSibling);
 
   } catch(e) {
