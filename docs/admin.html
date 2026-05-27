@@ -136,7 +136,8 @@ async function generateKey() {
   else expiry = plan;
 
   const secret = 'wechat-obsidian-bot-2026';
-  const payload = JSON.stringify({ mid: machineId, exp: expiry, prd: 'wechat-obsidian-bot' });
+  // Keys MUST be alphabetical to match Go's JSON marshal order: exp, mid, prd
+  const payload = JSON.stringify({ exp: expiry, mid: machineId, prd: 'wechat-obsidian-bot' });
   const payloadBytes = stringToBytes(payload);
 
   const sigRaw = await hmacSha256(secret, payload);

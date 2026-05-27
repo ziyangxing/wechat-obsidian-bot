@@ -5,158 +5,84 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>激活 License — WeChat Obsidian Bot</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f5f5; color: #1a1a2e; }
-  .container { max-width: 600px; margin: 0 auto; padding: 40px 24px; }
-  .card { background: white; border-radius: 12px; padding: 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
-  h1 { font-size: 1.6em; margin-bottom: 8px; text-align: center; }
-  .subtitle { text-align: center; color: #888; margin-bottom: 28px; }
-
-  .step { margin-bottom: 28px; }
-  .step-label { font-weight: 700; font-size: 0.9em; color: #667eea; margin-bottom: 8px; text-transform: uppercase; letter-spacing: .5px; }
-  label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.95em; }
-  input, textarea { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1em; margin-bottom: 12px; font-family: monospace; }
-  input:focus, textarea:focus { outline: none; border-color: #667eea; }
-  .btn { display: block; width: 100%; padding: 14px; border-radius: 8px; font-size: 1.1em; font-weight: 600; cursor: pointer; border: none; background: #667eea; color: white; transition: transform .2s; }
-  .btn:hover { transform: scale(1.02); }
-  .btn:disabled { background: #ccc; cursor: not-allowed; }
-  .divider { border-top: 1px solid #e0e0e0; margin: 28px 0; }
-
-  .result { margin-top: 20px; padding: 20px; background: #e8f5e9; border-radius: 8px; display: none; }
-  .result .key { font-family: monospace; font-size: 0.75em; word-break: break-all; background: white; padding: 12px; border-radius: 6px; margin: 12px 0; user-select: all; }
-  .error { background: #ffebee; color: #c62828; }
-
-  .qr-section { text-align: center; padding: 20px; background: #f8f9fc; border-radius: 8px; }
-  .qr-section img { width: 200px; height: 200px; border: 4px solid white; border-radius: 8px; }
-  .price-big { font-size: 2em; font-weight: 700; color: #667eea; }
-  .note { font-size: 0.85em; color: #999; margin-top: 8px; }
-
-  footer { text-align: center; margin-top: 30px; color: #999; font-size: 0.85em; }
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f5f5f5;color:#1a1a2e}
+.container{max-width:600px;margin:0 auto;padding:40px 24px}
+.card{background:white;border-radius:12px;padding:36px;box-shadow:0 2px 12px rgba(0,0,0,0.08)}
+h1{font-size:1.6em;margin-bottom:8px;text-align:center}
+.subtitle{text-align:center;color:#888;margin-bottom:28px}
+.step{margin-bottom:28px}
+.step-label{font-weight:700;font-size:0.9em;color:#667eea;margin-bottom:8px}
+label{display:block;font-weight:600;margin-bottom:6px}
+input{width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-size:1em;margin-bottom:12px;font-family:monospace}
+input:focus{outline:none;border-color:#667eea}
+.btn{display:block;width:100%;padding:14px;border-radius:8px;font-size:1.1em;font-weight:600;cursor:pointer;border:none;background:#667eea;color:white}
+.btn:hover{opacity:0.9}
+.btn:disabled{background:#ccc;cursor:not-allowed}
+.qr-section{text-align:center;padding:20px;background:#f8f9fc;border-radius:8px}
+.qr-section img{width:200px;height:200px;border:4px solid white;border-radius:8px}
+.price-big{font-size:2em;font-weight:700;color:#667eea}
+.note{font-size:0.85em;color:#999;margin-top:8px}
+footer{text-align:center;margin-top:30px;color:#999;font-size:0.85em}
+.success{background:#e8f5e9}
 </style>
 </head>
 <body>
 <div class="container">
-  <div class="card">
-    <h1>🔑 激活 License</h1>
-    <p class="subtitle">获取永久使用权，只需 ¥49</p>
+<div class="card">
+<h1>🔑 激活 License</h1>
+<p class="subtitle">三步获取永久使用权 · ¥49</p>
 
-    <!-- Step 1 -->
-    <div class="step">
-      <div class="step-label">步骤一</div>
-      <label for="deviceCode">设备码</label>
-      <input type="text" id="deviceCode" placeholder="运行 安装.bat 获取设备码，例如：EF4D87E773BC" maxlength="20">
-      <p class="note">打开"安装.bat"，屏幕显示的 12 位码</p>
-    </div>
+<div class="step">
+  <div class="step-label">① 输入设备码</div>
+  <label for="deviceCode">设备码</label>
+  <input type="text" id="deviceCode" placeholder="运行 安装.bat 后屏幕显示的 12 位码" maxlength="20">
+  <p class="note">例如：EF4D87E773BC</p>
+</div>
 
-    <!-- Step 2 -->
-    <div class="step">
-      <div class="step-label">步骤二</div>
-      <label>扫码支付 ¥49</label>
-      <div class="qr-section">
-        <p class="price-big">¥49.00</p>
-        <p style="margin:8px 0;">微信 / 支付宝扫码支付</p>
-        <img src="ReceiveMoney.jpg" alt="收款码" style="width:200px; height:200px; margin:12px auto; border:4px solid white; border-radius:8px; object-fit:contain;">
-        <p class="note">支付后截图保存交易记录</p>
-      </div>
-    </div>
-
-    <div class="divider"></div>
-
-    <!-- Step 3 -->
-    <div class="step">
-      <div class="step-label">步骤三</div>
-      <label for="txnId">付款交易号 / 截图链接</label>
-      <input type="text" id="txnId" placeholder="微信/支付宝交易单号后 6 位，或付款截图链接">
-      <p class="note">我们验证后会立即将 License Key 发送到你的邮箱</p>
-    </div>
-
-    <button class="btn" id="submitBtn" onclick="submitActivation()">提交激活请求</button>
-
-    <div class="divider"></div>
-
-    <p class="note" style="text-align:center;">提交后请添加客服微信 <strong>15919122865</strong> 发送设备码<br>我们会立即回复 License Key</p>
+<div class="step">
+  <div class="step-label">② 扫码支付</div>
+  <label>微信 / 支付宝 ¥49.00</label>
+  <div class="qr-section">
+    <p class="price-big">¥49.00</p>
+    <img src="ReceiveMoney.jpg" alt="收款码" style="width:200px;height:200px;margin:12px auto;border:4px solid white;border-radius:8px;object-fit:contain;">
   </div>
 </div>
 
-<footer>
-  <p>WeChat Obsidian Bot · <a href="index.html" style="color:#667eea;">返回首页</a></p>
-</footer>
+<div class="step">
+  <div class="step-label">③ 获取 License Key</div>
+  <button class="btn" id="submitBtn" onclick="done()">我已支付，获取 License Key</button>
+</div>
+
+<div id="result"></div>
+
+<div style="border-top:1px solid #e0e0e0;margin-top:20px;padding-top:20px;text-align:center;">
+  <p>不会操作？直接加微信 <strong style="font-size:1.1em;">15919122865</strong></p>
+  <p class="note">发设备码 + 付款截图，秒回 License Key</p>
+</div>
+</div>
+</div>
+
+<footer><p>WeChat Obsidian Bot · <a href="index.html" style="color:#667eea;">返回首页</a></p></footer>
 
 <script>
-async function submitActivation() {
-  const deviceCode = document.getElementById('deviceCode').value.trim();
-  const txnId = document.getElementById('txnId').value.trim();
-  const btn = document.getElementById('submitBtn');
+function done() {
+  const code = document.getElementById('deviceCode').value.trim();
+  if (!code) { alert('请先输入设备码'); return; }
 
-  if (!deviceCode) { alert('请先输入设备码'); return; }
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('submitBtn').textContent = '已提交 ✓';
+  document.getElementById('submitBtn').style.background = '#4caf50';
 
-  btn.disabled = true;
-  btn.textContent = '提交中...';
-
-  // Try to submit to local activation server first
-  try {
-    const resp = await fetch('/api/activate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ machine_id: deviceCode, txn_id: txnId })
-    });
-    const data = await resp.json();
-    if (data.id) {
-      // Automated flow: poll for key
-      btn.textContent = '已提交，等待审批...';
-      btn.style.background = '#ff9800';
-      pollForKey(data.id, deviceCode, btn);
-      return;
-    }
-  } catch(e) {
-    // Server not running, fall through to manual flow
-  }
-
-  // Manual flow (server not available)
-  btn.textContent = '已提交 ✓';
-  btn.style.background = '#4caf50';
-
-  const div = document.createElement('div');
-  div.style.cssText = 'margin-top:16px; padding:16px; background:#e8f5e9; border-radius:8px; text-align:center;';
-  div.innerHTML = '<strong>✅ 激活请求已提交</strong><br><br>请添加客服微信 <strong>15919122865</strong><br>发送以下设备码：<br><br><code>' + deviceCode + '</code><br><br>我们会立即回复 License Key';
-  btn.parentNode.insertBefore(div, btn.nextSibling);
-}
-
-async function pollForKey(id, deviceCode, btn) {
-  const maxPolls = 120; // 10 minutes
-  let count = 0;
-
-  const check = async () => {
-    try {
-      const resp = await fetch('/api/key?id=' + id);
-      const data = await resp.json();
-      if (data.license_key) {
-        // Key ready!
-        btn.style.display = 'none';
-        const div = document.createElement('div');
-        div.style.cssText = 'margin-top:16px; padding:24px; background:#e8f5e9; border-radius:8px; text-align:center;';
-        div.innerHTML = '<strong>🎉 激活成功！</strong><br><br>' +
-          '<p>设备码: <code>' + data.machine_id + '</code></p>' +
-          '<p style="margin:12px 0;">License Key:</p>' +
-          '<div style="font-family:monospace;font-size:0.7em;word-break:break-all;background:white;padding:12px;border-radius:6px;margin:8px 0;user-select:all;">' + data.license_key + '</div>' +
-          '<button class="btn" onclick="navigator.clipboard.writeText(\'' + data.license_key + '\');this.textContent=\'✅ 已复制\'' + '" style="background:#4caf50;margin-top:8px;">📋 复制 Key</button>' +
-          '<p style="margin-top:12px;font-size:0.85em;">将此 Key 填入 config.json 的 license_key 字段</p>';
-        btn.parentNode.insertBefore(div, btn.nextSibling);
-        return;
-      }
-      if (count >= maxPolls) {
-        btn.textContent = '超时，请联系客服';
-        btn.style.background = '#e53935';
-        return;
-      }
-      count++;
-      setTimeout(check, 5000);
-    } catch(e) {
-      count++;
-      setTimeout(check, 5000);
-    }
-  };
-  check();
+  document.getElementById('result').innerHTML =
+    '<div class="success" style="margin-top:16px;padding:20px;border-radius:8px;text-align:center;">' +
+    '<strong>最后一步：发送设备码给客服</strong><br><br>' +
+    '<p style="font-size:1.2em;"><code>' + code + '</code></p><br>' +
+    '<p>添加微信 <strong style="font-size:1.1em;">15919122865</strong></p>' +
+    '<p>发送设备码和付款截图</p>' +
+    '<p style="margin-top:8px;color:#4caf50;">→ 立即收到 License Key</p><br>' +
+    '<p class="note">收到 Key 后：打开 config.json → 填入 license_key → 双击启动.bat</p>' +
+    '</div>';
 }
 </script>
 </body>

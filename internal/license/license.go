@@ -45,12 +45,8 @@ func GetMachineID() string {
 
 // GenerateKey creates a license key for the given machine ID and expiry date.
 func GenerateKey(machineID, expiry string) string {
-	payload := LicenseData{
-		MachineID: machineID,
-		Expiry:    expiry,
-		Product:   "wechat-obsidian-bot",
-	}
-	jsonData, _ := json.Marshal(payload)
+	// Fixed key order to match JS implementation (alphabetical: exp, mid, prd)
+	jsonData := []byte(fmt.Sprintf(`{"exp":"%s","mid":"%s","prd":"wechat-obsidian-bot"}`, expiry, machineID))
 
 	mac := hmac.New(sha256.New, secretKey)
 	mac.Write(jsonData)
