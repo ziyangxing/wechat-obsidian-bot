@@ -22,10 +22,17 @@ func main() {
 	// --device-code mode: show machine code and copy to clipboard
 	if len(os.Args) > 1 && os.Args[1] == "--device-code" {
 		code := license.GetMachineID()
+		activateURL := fmt.Sprintf("https://ziyangxing.github.io/wechat-obsidian-bot/activate?code=%s", code)
 		fmt.Printf("设备码: %s\n", code)
-		fmt.Printf("激活链接: https://ziyangxing.github.io/wechat-obsidian-bot/activate?code=%s\n", code)
+		fmt.Printf("激活链接: %s\n", activateURL)
 		copyToClipboard(code)
-		fmt.Println("(已复制到剪贴板，直接粘贴即可)")
+		fmt.Println("(设备码已复制到剪贴板)")
+		// Auto-open browser
+		exec.Command("rundll32", "url.dll,FileProtocolHandler", activateURL).Start()
+		fmt.Println("浏览器已打开激活页面...")
+		fmt.Println("按任意键关闭...")
+		var input string
+		fmt.Scanln(&input)
 		return
 	}
 

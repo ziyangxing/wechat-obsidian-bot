@@ -66,30 +66,36 @@ footer{text-align:center;margin-top:30px;color:#999;font-size:0.85em}
 <footer><p>WeChat Obsidian Bot · <a href="index.html" style="color:#667eea;">返回首页</a></p></footer>
 
 <script>
-// Auto-fill device code from URL ?code=XXX
+// Auto-fill from URL ?code=XXX and skip to payment step
 const params = new URLSearchParams(window.location.search);
 const codeParam = params.get('code');
 if (codeParam) {
   document.getElementById('deviceCode').value = codeParam;
   document.getElementById('deviceCode').style.background = '#e8f5e9';
+  // Auto-trigger: device code is already filled, show next steps immediately
+  showResult(codeParam);
 }
 
 function done() {
   const code = document.getElementById('deviceCode').value.trim();
   if (!code) { alert('请先输入设备码'); return; }
+  showResult(code);
+}
 
+function showResult(code) {
+function showResult(code) {
   document.getElementById('submitBtn').disabled = true;
-  document.getElementById('submitBtn').textContent = '已提交 ✓';
+  document.getElementById('submitBtn').textContent = '✓';
   document.getElementById('submitBtn').style.background = '#4caf50';
 
   document.getElementById('result').innerHTML =
     '<div class="success" style="margin-top:16px;padding:20px;border-radius:8px;text-align:center;">' +
-    '<strong>最后一步：发送设备码给客服</strong><br><br>' +
-    '<p style="font-size:1.2em;"><code>' + code + '</code></p><br>' +
-    '<p>添加微信 <strong style="font-size:1.1em;">15919122865</strong></p>' +
-    '<p>发送设备码和付款截图</p>' +
-    '<p style="margin-top:8px;color:#4caf50;">→ 立即收到 License Key</p><br>' +
-    '<p class="note">收到 Key 后：打开 config.json → 填入 license_key → 双击启动.bat</p>' +
+    '<strong>扫码付款后，加微信发设备码</strong><br><br>' +
+    '<p style="font-size:1.3em;margin:8px 0;"><code>' + code + '</code></p>' +
+    '<p>(设备码已自动填入，直接截图发给客服)</p><br>' +
+    '<p>微信 <strong style="font-size:1.2em;">15919122865</strong></p>' +
+    '<p class="note">发"设备码 + 付款截图" → 秒回 License Key</p><br>' +
+    '<p class="note">收到 Key → config.json 填入 license_key → 双击启动.bat</p>' +
     '</div>';
 }
 </script>
