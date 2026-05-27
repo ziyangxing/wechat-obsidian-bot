@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"wechat-obsidian-bot/internal/license"
 )
@@ -124,23 +125,35 @@ func Run() {
 	machineID := license.GetMachineID()
 	fmt.Printf("你的设备码: %s\n", machineID)
 	fmt.Println()
-	fmt.Println("请将此设备码发送给作者获取 License Key。")
+	fmt.Println("请将此设备码发给作者获取 License Key。")
+	fmt.Println("（输入 trial 可获取 7 天免费试用）")
 	fmt.Println()
-	fmt.Print("输入 License Key（没有可回车跳过）: ")
-	key, _ := reader.ReadString('\n')
-	key = strings.TrimSpace(key)
 
-	if key != "" {
+	var key string
+	for {
+		fmt.Print("输入 License Key 或 trial: ")
+		key, _ = reader.ReadString('\n')
+		key = strings.TrimSpace(key)
+
+		if key == "" {
+			fmt.Println("不能跳过。需要输入有效的 License Key 或 trial。")
+			continue
+		}
+
+		if strings.ToLower(key) == "trial" {
+			// Generate 7-day trial
+			expiry := time.Now().AddDate(0, 0, 7).Format("2006-01-02")
+			key = license.GenerateKey(machineID, expiry)
+			fmt.Printf("✅ 试用已激活（有效期至 %s）\n", expiry)
+			break
+		}
+
 		ok, msg := license.Validate(key)
 		if ok {
 			fmt.Println("✅ License 验证通过！")
-		} else {
-			fmt.Printf("⚠️  License 验证失败: %s\n", msg)
-			fmt.Print("继续配置但启动时需要有效的 License Key。按 Enter...")
-			reader.ReadString('\n')
+			break
 		}
-	} else {
-		fmt.Println("已跳过。启动前请在 config.json 中手动填入 license_key。")
+		fmt.Printf("❌ %s，请重新输入\n", msg)
 	}
 
 	fmt.Println()
